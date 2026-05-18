@@ -1,8 +1,8 @@
-# Recovery Planner DApp
+# Recovery To-Do List Planner
 
 ## Project Description
 
-Recovery Planner is a Soroban-based decentralized application that helps users plan a balanced day by combining morning recovery metrics with task workload. The smart contract evaluates heart rate data and task attributes to provide a daily status, do/don't recommendations, and an optimized task order.
+Recovery To-Do List Planner is a Soroban-based decentralized application that helps users plan a balanced day by combining morning recovery metrics with task workload. The smart contract evaluates heart rate data and task attributes to provide a daily status, do/don't recommendations, and an optimized task order.
 
 ## Project Vision
 
