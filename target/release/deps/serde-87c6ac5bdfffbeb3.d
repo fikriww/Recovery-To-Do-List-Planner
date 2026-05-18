@@ -1,0 +1,14 @@
+/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/deps/serde-87c6ac5bdfffbeb3.d: /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/build/serde-097fd6d44e051436/out/private.rs
+
+/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/deps/libserde-87c6ac5bdfffbeb3.rlib: /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/build/serde-097fd6d44e051436/out/private.rs
+
+/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/deps/libserde-87c6ac5bdfffbeb3.rmeta: /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/build/serde-097fd6d44e051436/out/private.rs
+
+/Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/driven/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/build/serde-097fd6d44e051436/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/release/build/serde-097fd6d44e051436/out

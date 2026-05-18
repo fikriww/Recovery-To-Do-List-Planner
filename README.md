@@ -1,22 +1,42 @@
-# Soroban Project
+# Recovery Planner DApp
 
-## Project Structure
+## Project Description
 
-This repository uses the recommended structure for a Soroban project:
+Recovery Planner is a Soroban-based decentralized application that helps users plan a balanced day by combining morning recovery metrics with task workload. The smart contract evaluates heart rate data and task attributes to provide a daily status, do/don't recommendations, and an optimized task order.
 
-```text
-.
-├── contracts
-│   └── hello_world
-│       ├── src
-│       │   ├── lib.rs
-│       │   └── test.rs
-│       └── Cargo.toml
-├── Cargo.toml
-└── README.md
+## Project Vision
+
+Our vision is to make daily productivity healthier by using on-chain logic to prioritize recovery and essential work. The app aims to help users avoid overwork, choose the right focus tasks, and maintain a sustainable routine using a transparent smart contract engine.
+
+## Features
+
+- Morning recovery status calculation using current and baseline resting heart rate.
+- Task prioritization based on cognitive load, physical load, and importance.
+- Personalized recommendations for "Do" and "Don't" guidance.
+- Smart contract logic implemented in Soroban for deterministic plan generation.
+- Web frontend for input, interaction, and multilingual display.
+
+## Smart Contract ID
+
+Paste the deployed smart contract ID here after deployment:
+
+`SMART CONTRACT ID: CDRZU2VUHFXTKMQYRRJUBI62EHPHTAHC3GO6ZVEKCM5EGD4SSJEFCNCH`
+
+## Notes for Submission
+
+- Title: Recovery Planner DApp
+- Description: A recovery-aware daily planning app with Soroban smart contract evaluation.
+- Vision: A healthier, blockchain-powered task planning experience.
+- Features: metrics input, task workload analysis, recommendation engine, on-chain plan generation.
+- Smart Contract ID: add it after deployment to the Stellar testnet.
+
+## How to Deploy
+
+Build and deploy the contract with the Stellar CLI tools:
+
+```bash
+stellar contract build
+stellar contract deploy --source-account <your-testnet-account>
 ```
 
-- New Soroban contracts can be put in `contracts`, each in their own directory. There is already a `hello_world` contract in there to get you started.
-- If you initialized this project with any other example contracts via `--with-example`, those contracts will be in the `contracts` directory as well.
-- Contracts should have their own `Cargo.toml` files that rely on the top-level `Cargo.toml` workspace for their dependencies.
-- Frontend libraries can be added to the top-level directory as well. If you initialized this project with a frontend template via `--frontend-template` you will have those files already included.
+After deployment, copy the contract ID into the Smart Contract ID section above.
