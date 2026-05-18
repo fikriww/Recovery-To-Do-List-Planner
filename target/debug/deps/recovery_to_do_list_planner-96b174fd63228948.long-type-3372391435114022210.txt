@@ -1,0 +1,1 @@
+std::iter::Map<soroban_sdk::iter::UnwrappedIter<soroban_sdk::vec::VecTryIter<Task>, Task, soroban_env_common::val::ConversionError>, for<'a> fn(&'a Task) -> TaskResponse {SorobanPlanEngine::contract_task_to_response}>

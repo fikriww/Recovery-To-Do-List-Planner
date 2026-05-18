@@ -8,14 +8,16 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use hello_world::{Contract, ContractClient, Task as ContractTask, TaskLoad as ContractTaskLoad};
 use serde::{de, Deserialize, Deserializer, Serialize};
+use soroban_sdk::{Env, String as SorobanString, Vec as SorobanVec};
 use tokio::net::TcpListener;
 use thiserror::Error;
 
 #[derive(Debug, Deserialize, Serialize)]
 struct MorningMetrics {
-    current_rhr: u8,
-    baseline_rhr: u8,
+    current_rhr: u32,
+    baseline_rhr: u32,
     hrv: Option<f32>,
 }
 
@@ -27,14 +29,6 @@ enum TaskLoad {
 }
 
 impl TaskLoad {
-    fn score(self) -> u8 {
-        match self {
-            TaskLoad::Low => 1,
-            TaskLoad::Medium => 2,
-            TaskLoad::High => 3,
-        }
-    }
-
     fn from_str(value: &str) -> Option<Self> {
         match value.trim().to_lowercase().as_str() {
             "low" => Some(TaskLoad::Low),
@@ -80,8 +74,8 @@ impl fmt::Display for TaskLoad {
     }
 }
 
-#[derive(Debug, Clone, Deserialize, Serialize)]
-struct Task {
+#[derive(Debug, Clone, Deserialize)]
+struct TaskRequest {
     id: String,
     title: String,
     cognitive_load: TaskLoad,
@@ -89,10 +83,19 @@ struct Task {
     is_essential: bool,
 }
 
+#[derive(Debug, Serialize)]
+struct TaskResponse {
+    id: String,
+    title: String,
+    cognitive_load: String,
+    physical_load: String,
+    is_essential: bool,
+}
+
 #[derive(Debug, Deserialize)]
 struct PlanRequest {
     morning_metrics: MorningMetrics,
-    tasks: Vec<Task>,
+    tasks: Vec<TaskRequest>,
 }
 
 #[derive(Debug, Serialize)]
@@ -100,7 +103,7 @@ struct DailyPlanResponse {
     status: String,
     do_recommendations: Vec<String>,
     dont_recommendations: Vec<String>,
-    optimized_tasks: Vec<Task>,
+    optimized_tasks: Vec<TaskResponse>,
 }
 
 #[derive(Debug, Serialize)]
@@ -128,99 +131,81 @@ impl IntoResponse for ApiError {
 }
 
 trait PlanEngine: Send + Sync {
-    fn build_daily_plan(&self, metrics: &MorningMetrics, tasks: Vec<Task>) -> DailyPlanResponse;
+    fn build_daily_plan(&self, metrics: &MorningMetrics, tasks: Vec<TaskRequest>) -> DailyPlanResponse;
 }
 
-struct DefaultPlanEngine;
+struct SorobanPlanEngine;
 
-impl DefaultPlanEngine {
-    fn is_fatigued(metrics: &MorningMetrics) -> bool {
-        let threshold = metrics.baseline_rhr as f32 * 1.10;
-        metrics.current_rhr as f32 > threshold
+impl SorobanPlanEngine {
+    fn convert_task_load(load: TaskLoad) -> ContractTaskLoad {
+        match load {
+            TaskLoad::Low => ContractTaskLoad::Low,
+            TaskLoad::Medium => ContractTaskLoad::Medium,
+            TaskLoad::High => ContractTaskLoad::High,
+        }
     }
 
-    fn is_optimal(metrics: &MorningMetrics) -> bool {
-        metrics.current_rhr as u8 <= metrics.baseline_rhr
+    fn soroban_string_to_std(value: &SorobanString) -> String {
+        value.to_string()
     }
-}
 
-impl PlanEngine for DefaultPlanEngine {
-    fn build_daily_plan(&self, metrics: &MorningMetrics, tasks: Vec<Task>) -> DailyPlanResponse {
-        if Self::is_fatigued(metrics) {
-            let filtered: Vec<Task> = tasks
-                .into_iter()
-                .filter(|task| task.is_essential || !(task.cognitive_load == TaskLoad::High || task.physical_load == TaskLoad::High))
-                .collect();
+    fn contract_task_to_response(task: &ContractTask) -> TaskResponse {
+        TaskResponse {
+            id: Self::soroban_string_to_std(&task.id),
+            title: Self::soroban_string_to_std(&task.title),
+            cognitive_load: match task.cognitive_load {
+                ContractTaskLoad::Low => "Low".to_string(),
+                ContractTaskLoad::Medium => "Medium".to_string(),
+                ContractTaskLoad::High => "High".to_string(),
+            },
+            physical_load: match task.physical_load {
+                ContractTaskLoad::Low => "Low".to_string(),
+                ContractTaskLoad::Medium => "Medium".to_string(),
+                ContractTaskLoad::High => "High".to_string(),
+            },
+            is_essential: task.is_essential,
+        }
+    }
 
-            let mut essential_high: Vec<Task> = filtered
-                .iter()
-                .cloned()
-                .filter(|task| task.is_essential && (task.cognitive_load == TaskLoad::High || task.physical_load == TaskLoad::High))
-                .collect();
-
-            let mut low_load: Vec<Task> = filtered
-                .iter()
-                .cloned()
-                .filter(|task| task.cognitive_load == TaskLoad::Low && task.physical_load == TaskLoad::Low)
-                .collect();
-
-            let mut remaining: Vec<Task> = filtered
-                .into_iter()
-                .filter(|task| {
-                    !(task.is_essential && (task.cognitive_load == TaskLoad::High || task.physical_load == TaskLoad::High))
-                        && !(task.cognitive_load == TaskLoad::Low && task.physical_load == TaskLoad::Low)
-                })
-                .collect();
-
-            essential_high.append(&mut low_load);
-            essential_high.append(&mut remaining);
-
-            DailyPlanResponse {
-                status: "Fatigued".to_string(),
-                do_recommendations: vec![
-                    "Prioritize recovery and avoid high-strain tasks.".to_string(),
-                    "Focus on essential work, short breaks, and hydration.".to_string(),
-                ],
-                dont_recommendations: vec![
-                    "Skip heavy workouts today.".to_string(),
-                    "Limit caffeine and avoid late-night deep work.".to_string(),
-                ],
-                optimized_tasks: essential_high,
-            }
-        } else if Self::is_optimal(metrics) {
-            let mut sorted_tasks = tasks;
-            sorted_tasks.sort_by(|a, b| b.cognitive_load.score().cmp(&a.cognitive_load.score()));
-
-            DailyPlanResponse {
-                status: "Prime".to_string(),
-                do_recommendations: vec![
-                    "Tackle the hardest problems early.".to_string(),
-                    "Use your recovery window for focused deep work.".to_string(),
-                ],
-                dont_recommendations: vec![
-                    "Don't procrastinate on your top priority tasks.".to_string(),
-                ],
-                optimized_tasks: sorted_tasks,
-            }
-        } else {
-            let mut sorted_tasks = tasks;
-            sorted_tasks.sort_by(|a, b| {
-                b.is_essential
-                    .cmp(&a.is_essential)
-                    .then_with(|| b.cognitive_load.score().cmp(&a.cognitive_load.score()))
+    fn build_contract_tasks(env: &Env, tasks: Vec<TaskRequest>) -> SorobanVec<ContractTask> {
+        let mut contract_tasks = SorobanVec::new(env);
+        for task in tasks {
+            contract_tasks.push_back(ContractTask {
+                id: SorobanString::from_str(env, &task.id),
+                title: SorobanString::from_str(env, &task.title),
+                cognitive_load: Self::convert_task_load(task.cognitive_load),
+                physical_load: Self::convert_task_load(task.physical_load),
+                is_essential: task.is_essential,
             });
+        }
+        contract_tasks
+    }
+}
 
-            DailyPlanResponse {
-                status: "Normal".to_string(),
-                do_recommendations: vec![
-                    "Keep a balanced workload and listen to your energy levels.".to_string(),
-                    "Start with essential tasks and maintain steady pacing.".to_string(),
-                ],
-                dont_recommendations: vec![
-                    "Avoid sudden spikes in physical or mental strain.".to_string(),
-                ],
-                optimized_tasks: sorted_tasks,
-            }
+impl PlanEngine for SorobanPlanEngine {
+    fn build_daily_plan(&self, metrics: &MorningMetrics, tasks: Vec<TaskRequest>) -> DailyPlanResponse {
+        let env = Env::default();
+        let contract_id = env.register(Contract, ());
+        let client = ContractClient::new(&env, &contract_id);
+        let contract_tasks = Self::build_contract_tasks(&env, tasks);
+
+        let (status, do_recommendations, dont_recommendations, optimized_tasks) =
+            client.plan_daily(&metrics.current_rhr, &metrics.baseline_rhr, &contract_tasks);
+
+        DailyPlanResponse {
+            status: Self::soroban_string_to_std(&status),
+            do_recommendations: do_recommendations
+                .iter()
+                .map(|s| Self::soroban_string_to_std(&s))
+                .collect(),
+            dont_recommendations: dont_recommendations
+                .iter()
+                .map(|s| Self::soroban_string_to_std(&s))
+                .collect(),
+            optimized_tasks: optimized_tasks
+                .iter()
+                .map(|task| Self::contract_task_to_response(&task))
+                .collect(),
         }
     }
 }
@@ -236,24 +221,24 @@ async fn plan_day(
 
 #[tokio::main]
 async fn main() {
-    let engine: Arc<dyn PlanEngine> = Arc::new(DefaultPlanEngine);
+    let engine: Arc<dyn PlanEngine> = Arc::new(SorobanPlanEngine);
 
     async fn serve_index() -> impl IntoResponse {
-        match tokio::fs::read_to_string("static/index.html").await {
+        match tokio::fs::read_to_string("frontend/index.html").await {
             Ok(s) => (StatusCode::OK, [("content-type", "text/html; charset=utf-8")], s).into_response(),
             Err(_) => (StatusCode::NOT_FOUND, "index.html not found").into_response(),
         }
     }
 
     async fn serve_js() -> impl IntoResponse {
-        match tokio::fs::read_to_string("static/app.js").await {
+        match tokio::fs::read_to_string("frontend/app.js").await {
             Ok(s) => (StatusCode::OK, [("content-type", "application/javascript; charset=utf-8")], s).into_response(),
             Err(_) => (StatusCode::NOT_FOUND, "app.js not found").into_response(),
         }
     }
 
     async fn serve_css() -> impl IntoResponse {
-        match tokio::fs::read_to_string("static/styles.css").await {
+        match tokio::fs::read_to_string("frontend/styles.css").await {
             Ok(s) => (StatusCode::OK, [("content-type", "text/css; charset=utf-8")], s).into_response(),
             Err(_) => (StatusCode::NOT_FOUND, "styles.css not found").into_response(),
         }

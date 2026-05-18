@@ -1,0 +1,1 @@
+/Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/target/wasm32v1-none/release/libhello_world.rlib: /Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/contracts/hello-world/src/lib.rs /Users/driven/KULIAH/semester_6/Rise-soroban/my-soroban-project/contracts/hello-world/src/test.rs

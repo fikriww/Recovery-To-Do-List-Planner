@@ -1326,13 +1326,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "recovery-planner"
+name = "recovery-to-do-list-planner"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "hello-world",
  "hyper",
  "serde",
  "serde_json",
+ "soroban-sdk",
  "thiserror",
  "tokio",
 ]
